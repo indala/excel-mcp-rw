@@ -328,6 +328,117 @@ def append_rows(
 
 
 @mcp.tool()
+def add_sheet(
+    file_path: str,
+    sheet_name: str,
+    data: Optional[List[Dict[str, Any]]] = None,
+    headers: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    Add a new worksheet tab to an existing Excel workbook without modifying other sheets.
+    Optionally populates it with initial headers and rows.
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    wb = openpyxl.load_workbook(file_path)
+    if sheet_name in wb.sheetnames:
+        raise ValueError(f"Sheet '{sheet_name}' already exists in workbook. Existing sheets: {wb.sheetnames}")
+
+    ws = wb.create_sheet(title=sheet_name)
+    rows_added = 0
+
+    if data and len(data) > 0:
+        cols = headers if headers else list(data[0].keys())
+        ws.append(cols)
+        for item in data:
+            ws.append([item.get(c, None) for c in cols])
+            rows_added += 1
+
+        # Auto-adjust column widths
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = min(max(max_len + 3, 10), 50)
+    elif headers:
+        ws.append(headers)
+
+    all_sheets = list(wb.sheetnames)
+    wb.save(file_path)
+    wb.close()
+
+    return {
+        "status": "success",
+        "file_path": file_path,
+        "sheet_added": sheet_name,
+        "rows_added": rows_added,
+        "all_sheets": all_sheets,
+    }
+
+
+@mcp.tool()
+def rename_sheet(
+    file_path: str,
+    old_name: str,
+    new_name: str,
+) -> Dict[str, Any]:
+    """
+    Rename an existing worksheet tab in an Excel workbook.
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    wb = openpyxl.load_workbook(file_path)
+    if old_name not in wb.sheetnames:
+        raise ValueError(f"Sheet '{old_name}' not found. Available sheets: {wb.sheetnames}")
+    if new_name in wb.sheetnames:
+        raise ValueError(f"A sheet named '{new_name}' already exists.")
+
+    wb[old_name].title = new_name
+    all_sheets = list(wb.sheetnames)
+    wb.save(file_path)
+    wb.close()
+
+    return {
+        "status": "success",
+        "file_path": file_path,
+        "renamed_from": old_name,
+        "renamed_to": new_name,
+        "all_sheets": all_sheets,
+    }
+
+
+@mcp.tool()
+def delete_sheet(
+    file_path: str,
+    sheet_name: str,
+) -> Dict[str, Any]:
+    """
+    Delete a specific worksheet tab from an existing Excel workbook.
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    wb = openpyxl.load_workbook(file_path)
+    if sheet_name not in wb.sheetnames:
+        raise ValueError(f"Sheet '{sheet_name}' not found. Available sheets: {wb.sheetnames}")
+    if len(wb.sheetnames) <= 1:
+        raise ValueError("Cannot delete the only sheet in a workbook.")
+
+    wb.remove(wb[sheet_name])
+    remaining_sheets = list(wb.sheetnames)
+    wb.save(file_path)
+    wb.close()
+
+    return {
+        "status": "success",
+        "file_path": file_path,
+        "sheet_deleted": sheet_name,
+        "remaining_sheets": remaining_sheets,
+    }
+
+
+@mcp.tool()
 def update_cells(
     file_path: str,
     updates: List[Dict[str, Any]],

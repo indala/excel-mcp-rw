@@ -45,6 +45,9 @@ Most Excel MCP servers are lightweight JavaScript wrappers that fail on real-wor
 | `summarize_column` | Comprehensive column statistics: min, max, mean, median, std, sum (numeric) or top 10 value frequencies (categorical). |
 | `search_text` | Fast pattern and keyword search across all rows and columns with row number coordinates. |
 | `create_workbook` | Create formatted `.xlsx` files with auto-fitted column widths from JSON records. |
+| `add_sheet` | Add a brand new sheet tab to an existing workbook without touching other sheets (with optional data and headers). |
+| `rename_sheet` | Rename an existing sheet tab. |
+| `delete_sheet` | Delete a specific worksheet tab from an existing workbook. |
 | `append_rows` | In-place row append without rewriting the workbook. |
 | `update_cells` | Surgical updates to specific cells or formulas (e.g. `[{"cell": "C10", "value": "=SUM(C1:C9)"}]`). |
 | `export_to_csv` | Export large sheets to clean CSV format. |
