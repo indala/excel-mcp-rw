@@ -52,6 +52,13 @@ Most Excel MCP servers are lightweight JavaScript wrappers that fail on real-wor
 | `update_cells` | Surgical updates to specific cells or formulas (e.g. `[{"cell": "C10", "value": "=SUM(C1:C9)"}]`). |
 | `export_to_csv` | Export large sheets to clean CSV format. |
 
+### 🔄 Multi-Key Reconciliation & Discrepancy Matching (`pandas` + `RapidFuzz`)
+
+| Tool | Description |
+| :--- | :--- |
+| `analyze_reconciliation_keys` | **Pre-flight Diagnostic**: Evaluates key compatibility, nulls, duplicates, data type mismatches, exact match %, and fuzzy match potential across workbooks *before* any merge. |
+| `reconcile_and_merge` | **Reconciliation Engine**: Matches on composite keys (2–3+ columns), calculates numerical/text variances on compared columns, applies fuzzy matching on unmatched keys, and outputs a clean 3-tab audit workbook (`1_Reconciled_Matches`, `2_Probable_Fuzzy_Matches`, `3_Unmatched_Exceptions`). |
+
 ### 🪟 Native Windows Microsoft Excel Tools (COM / PyWin32)
 
 | Tool | Description |
@@ -61,6 +68,22 @@ Most Excel MCP servers are lightweight JavaScript wrappers that fail on real-wor
 | `refresh_data_and_pivots` | Refreshes all external data connections and PivotTables (`RefreshAll()`). |
 | `run_vba_macro` | Runs any VBA macro inside `.xlsm` or `.xlsb` workbooks. |
 | `get_active_excel_window` | Detects if Excel is open on your desktop and returns the active workbook, active sheet, and selected range. |
+
+---
+
+## 📋 Best-Practice Agent Workflow for Reconciliations
+
+When asking your AI assistant to compare or reconcile two workbooks (e.g. Purchase Orders vs SAP/ERP records):
+
+1. **Step 1: Pre-Flight Analysis**  
+   The agent calls `analyze_reconciliation_keys(file_1, file_2, join_keys=['PO_Number', 'SAP_Code'])` to diagnose key overlap, formatting quirks, and duplicate keys.
+2. **Step 2: Diagnosis & Strategy Alignment**  
+   The agent reports match percentage and any recommendations (e.g. *"5 rows have whitespace differences; 2 rows need fuzzy matching"*).
+3. **Step 3: Execute & Generate 3-Tab Audit Workbook**  
+   The agent runs `reconcile_and_merge` to produce:
+   * `1_Reconciled_Matches`: Exact matches + calculated price/qty differences.
+   * `2_Probable_Fuzzy_Matches`: Near matches flagged for human review with confidence %.
+   * `3_Unmatched_Exceptions`: Records missing in either file.
 
 ---
 
